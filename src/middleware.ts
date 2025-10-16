@@ -47,7 +47,7 @@ export default async function middleware(req: NextRequest) {
   if(isLoggedIn && pathname === '/select-role' && user?.role) {
     return NextResponse.redirect(new URL('/', req.url));
   }
-  if(isLoggedIn && pathname === '/' && !user?.role) {
+  if(isLoggedIn && isPublicRoute && !user?.role) {
     return NextResponse.redirect(new URL('/select-role', req.url));
   }
   
