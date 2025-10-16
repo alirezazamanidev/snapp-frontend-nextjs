@@ -36,21 +36,16 @@ function MapUpdater({ position }: { position: [number, number] | null }) {
 export default function DirverMap({ 
  
 }) {
-  const { userLocation, isLoadingLocation, getUserLocation } = useGeolocation();
+  const { position } = useGeolocation();
   const [center, setCenter] = useState<[number, number]>([35.6892, 51.389]);
 
   // به‌روزرسانی مرکز نقشه بر اساس موقعیت کاربر
   useEffect(() => {
-    if (userLocation) {
-      setCenter(userLocation);
+    if (position) {
+      setCenter(position);
     }
-  }, [userLocation]);
+  }, [position]);
 
-  // دریافت موقعیت کاربر هنگام بارگذاری کامپوننت
-  useEffect(() => {
-    getUserLocation();
-  }, []);
-   
   return (
     <MapContainer
       center={center}
@@ -63,13 +58,13 @@ export default function DirverMap({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* کامپوننت برای به‌روزرسانی موقعیت نقشه */}
+      {/* کامپوننت برای به‌روزرسانی موقعیت نقشه
       <MapUpdater position={userLocation} />
 
       {/* موقعیت راننده */}
-      {userLocation && (
+      {/* {userLocation && (
         <Marker position={userLocation} icon={driverLocationIcon} />
-      )}
+      )} */} 
     </MapContainer>
   );
 }

@@ -1,23 +1,22 @@
-import { useState } from "react";
+'use client';
+import { useEffect, useState } from "react";
 
 export default function useGeolocation() {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  
-    const getUserLocation = () => {
-      setIsLoadingLocation(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-          setIsLoadingLocation(false);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setIsLoadingLocation(false);
-        }
-      );
-    };
-  
-    return { userLocation, isLoadingLocation, getUserLocation, setUserLocation };
-  }
+    const [position, setPosition] = useState<[number, number] | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(()=>{
+       navigator.geolocation.getCurrentPosition((position)=>{
+        console.log(position);
+        setPosition([position.coords.latitude, position.coords.longitude]);
+       },(error)=>{
+        setError(error.message);
+       },{
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+       });
+    },[]);
+    return { position, error, loading };
+}

@@ -1,29 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import 'leaflet/dist/leaflet.css';
+ 
 import dynamic from 'next/dynamic';
-
-// Dynamically import the map component to avoid SSR issues
-const RideMap = dynamic(() => import('../../components/ride/rideMap'), {
+const PassengerMap = dynamic(() => import('@/components/Passenger/passengerMap'), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-      <div className="text-white">Loading map...</div>
-    </div>
-  ),
+  loading: () => <div>Loading...</div>,
 });
 
 
-export default function SnapApp() {
 
 
+
+
+
+// Main PassengerPage Component
+export default function PassengerPage() {
+  
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
-    
-        {/* Map Container */}
-        
-          <RideMap />
-       
+    <div className="h-screen  bg-gray-900">
+      {/* Map */}
+   
+        <PassengerMap />
+
 
     </div>
   );
