@@ -2,19 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CallApi } from '@/libs/helpers/callApi';
 
 export default function SelectRolePage() {
-  const [selectedRole, setSelectedRole] = useState<'passenger' | 'driver' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'user' | 'driver' | null>(null);
   const router = useRouter();
 
-  const handleRoleSelect = (role: 'passenger' | 'driver') => {
+  const handleRoleSelect = (role: 'user' | 'driver') => {
     setSelectedRole(role);
   };
 
-  const handleContinue = () => {
-    if (selectedRole) {
-      // Save selected role and navigate to next page
-      router.push('/');
+  const handleContinue = async () => {
+    if(!selectedRole) return;
+    try {
+      const res = await CallApi().patch('/user/select-role', {
+        role: selectedRole,
+      });
+      if(res.status === 200) {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -36,16 +44,16 @@ export default function SelectRolePage() {
         <div className="space-y-4">
           {/* Passenger Card */}
           <div
-            onClick={() => handleRoleSelect('passenger')}
+            onClick={() => handleRoleSelect('user')}
             className={`relative cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
-              selectedRole === 'passenger'
+              selectedRole === 'user'
                 ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/25'
                 : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
             }`}
           >
             <div className="flex items-center space-x-4">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                selectedRole === 'passenger' ? 'bg-blue-500' : 'bg-gray-700'
+                selectedRole === 'user' ? 'bg-blue-500' : 'bg-gray-700'
               }`}>
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -55,7 +63,7 @@ export default function SelectRolePage() {
                 <h3 className="text-xl font-semibold text-white mb-2">Passenger</h3>
                 <p className="text-gray-400 text-sm">Book rides and reach your destination</p>
               </div>
-              {selectedRole === 'passenger' && (
+              {selectedRole === 'user' && (
                 <div className="absolute top-4 right-4">
                   <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
