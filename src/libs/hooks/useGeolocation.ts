@@ -8,7 +8,7 @@ export default function useGeolocation() {
 
     useEffect(()=>{
        navigator.geolocation.getCurrentPosition((position)=>{
-        console.log(position);
+        
         setPosition([position.coords.latitude, position.coords.longitude]);
        },(error)=>{
         setError(error.message);
