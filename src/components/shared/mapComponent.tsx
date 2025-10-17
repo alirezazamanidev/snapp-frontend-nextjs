@@ -57,7 +57,7 @@ function MapController({
   setOrigin, 
   setDestination 
 }: { 
-  step: 'select-origin' | 'select-destination' | 'show-route',
+  step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride',
   setOrigin: (origin: LatLng) => void,
   setDestination: (destination: LatLng) => void
 }) {
@@ -83,7 +83,7 @@ function MapController({
 }
 
 interface MapComponentProps {
-  step: 'select-origin' | 'select-destination' | 'show-route';
+  step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride';
   origin: LatLng | null;
   destination: LatLng | null;
   setOrigin: (origin: LatLng) => void;

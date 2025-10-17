@@ -1,5 +1,6 @@
 'use client';
 
+import SearchRideLoading from '@/components/passenger/search-ride-loading';
 import { useSocket } from '@/libs/hooks/useSocket';
 
 import { LatLng } from '@/libs/types/coordinate.type';
@@ -12,12 +13,13 @@ const MapComponent = dynamic(() => import('@/components/shared/mapComponent'), {
 
 export default function PassengerPage() {
   const [step, setStep] = useState<
-    'select-origin' | 'select-destination' | 'show-route'
+    'select-origin' | 'select-destination' | 'show-route' | 'searching-ride'
   >('select-origin');
   const [origin, setOrigin] = useState<LatLng | null>({
     lat: 35.6892,
     lng: 51.389,
   });
+
   const [destination, setDestination] = useState<LatLng | null>(null);
   const [routeCoordinates, setRouteCoordinates] = useState<
     [number, number][] | null
@@ -26,13 +28,20 @@ export default function PassengerPage() {
   const [tripDistance, setTripDistance] = useState<number | null>(null);
   const [tripDuration, setTripDuration] = useState<number | null>(null);
   const {socket} = useSocket({namespace:'passenger'});
-  
+  useEffect(() => {  
+    const status = localStorage.getItem('status');
+    if(status==='searching-ride') {
+      setStep('searching-ride');
+    }
+  },[]);
   const handleConfirmOrigin = () => {
     if (origin) {
      
       setStep('select-destination');
     }
   };
+
+
 
   const handleConfirmDestination = async () => {
     if (destination && origin) {
@@ -58,6 +67,8 @@ export default function PassengerPage() {
 
   const handleRequestRide = () => {
     if (destination && origin) {
+      localStorage.setItem('status','searching-ride');
+      setStep('searching-ride');
       socket?.emit('request-ride', {
         pickupLocation: Object.values(origin).join(','),
         destinationLocation: Object.values(destination).join(','),
@@ -99,7 +110,9 @@ export default function PassengerPage() {
     return price.toLocaleString();
   };
 
-
+ if(step==='searching-ride') {
+  return <SearchRideLoading />;
+ }
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 md:hidden">
       {/* Map - 75% of screen */}
@@ -143,7 +156,7 @@ export default function PassengerPage() {
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center mb-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-2"></div>
-                <h3 className="text-white text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text text-transparent">
+                <h3 className="text-white text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text ">
                   Select Your Destination
                 </h3>
               </div>
