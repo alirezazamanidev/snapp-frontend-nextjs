@@ -44,10 +44,12 @@ export default async function middleware(req: NextRequest) {
     if (!user?.role) {
       return NextResponse.redirect(new URL('/select-role', req.url));
     }
+    if (user.role === 'driver') {
+      return NextResponse.redirect(new URL('/driver', req.url));
+    }
     return NextResponse.redirect(new URL('/', req.url));
   }
-  
-  // اگر کاربر لاگین است و نقش دارد و در صفحه انتخاب نقش است
+
   if(isLoggedIn && pathname === '/select-role' && user?.role) {
     if (user.role === 'driver') {
       return NextResponse.redirect(new URL('/driver', req.url));

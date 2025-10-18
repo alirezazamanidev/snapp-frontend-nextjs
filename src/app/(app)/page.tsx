@@ -6,10 +6,17 @@ import { useSocket } from '@/libs/hooks/useSocket';
 import { LatLng } from '@/libs/types/coordinate.type';
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
-const MapComponent = dynamic(() => import('@/components/shared/mapComponent'), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-900 to-gray-800"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>,
-});
+const PassengerMap = dynamic(
+  () => import('@/components/passenger/passenger-map'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    ),
+  },
+);
 
 export default function PassengerPage() {
   const [step, setStep] = useState<
@@ -27,47 +34,51 @@ export default function PassengerPage() {
   const [tripPrice, setTripPrice] = useState<number | null>(null);
   const [tripDistance, setTripDistance] = useState<number | null>(null);
   const [tripDuration, setTripDuration] = useState<number | null>(null);
-  const {socket} = useSocket({namespace:'passenger'});
-  useEffect(() => {  
+  const { socket } = useSocket({ namespace: 'passenger' });
+  useEffect(() => {
     const status = localStorage.getItem('status');
-    if(status==='searching-ride') {
+    if (status === 'searching-ride') {
       setStep('searching-ride');
     }
-  },[]);
+  }, []);
   const handleConfirmOrigin = () => {
     if (origin) {
-     
       setStep('select-destination');
     }
   };
 
-
-
   const handleConfirmDestination = async () => {
     if (destination && origin) {
-      socket?.emit('calculate-ride', {
-        pickupLocation: Object.values(origin).join(','),
-        destinationLocation: Object.values(destination).join(','),
-      },(data:{
-        routeCoordinates:LatLng[]
-        price:number
-        distance:number
-        duration:number
-
-      })=>{
-        
-        setRouteCoordinates(data.routeCoordinates.map((coord:LatLng)=>[coord.lat,coord.lng]));
-        setTripPrice(data.price);
-        setTripDistance(data.distance);
-        setTripDuration(data.duration);
-      });
+      socket?.emit(
+        'calculate-ride',
+        {
+          pickupLocation: Object.values(origin).join(','),
+          destinationLocation: Object.values(destination).join(','),
+        },
+        (data: {
+          routeCoordinates: LatLng[];
+          price: number;
+          distance: number;
+          duration: number;
+        }) => {
+          setRouteCoordinates(
+            data.routeCoordinates.map((coord: LatLng) => [
+              coord.lat,
+              coord.lng,
+            ]),
+          );
+          setTripPrice(data.price);
+          setTripDistance(data.distance);
+          setTripDuration(data.duration);
+        },
+      );
       setStep('show-route');
     }
   };
 
   const handleRequestRide = () => {
     if (destination && origin) {
-      localStorage.setItem('status','searching-ride');
+      localStorage.setItem('status', 'searching-ride');
       setStep('searching-ride');
       socket?.emit('request-ride', {
         pickupLocation: Object.values(origin).join(','),
@@ -110,22 +121,15 @@ export default function PassengerPage() {
     return price.toLocaleString();
   };
 
- if(step==='searching-ride') {
-  return <SearchRideLoading />;
- }
+  if (step === 'searching-ride') {
+    return <SearchRideLoading />;
+  }
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 md:hidden">
       {/* Map - 75% of screen */}
       <div className="h-3/4 relative overflow-hidden rounded-b-3xl shadow-2xl">
-        <MapComponent
-          step={step}
-          origin={origin}
-          destination={destination}
-          setOrigin={setOrigin}
-          setDestination={setDestination}
-          routeCoordinates={routeCoordinates}
-        />
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        <PassengerMap step={step} origin={origin} destination={destination} setOrigin={setOrigin} setDestination={setDestination} routeCoordinates={routeCoordinates} />
       </div>
 
       {/* Control Panel - 25% of screen */}
@@ -180,7 +184,7 @@ export default function PassengerPage() {
                   Trip Details
                 </h3>
               </div>
-              
+
               {/* Trip Details Card */}
               <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-4 mb-3 border border-gray-600/50 shadow-inner">
                 {/* Price */}
@@ -189,20 +193,28 @@ export default function PassengerPage() {
                     {formatPrice(tripPrice)} تومان
                   </span>
                 </div>
-                
+
                 {/* Distance and Duration */}
                 <div className="grid grid-cols-2 gap-3 text-center">
                   <div className="bg-gray-700/50 rounded-xl p-2">
-                    <div className="text-blue-400 text-sm font-medium">Distance</div>
-                    <div className="text-white text-sm font-bold">{formatDistance(tripDistance)}</div>
+                    <div className="text-blue-400 text-sm font-medium">
+                      Distance
+                    </div>
+                    <div className="text-white text-sm font-bold">
+                      {formatDistance(tripDistance)}
+                    </div>
                   </div>
                   <div className="bg-gray-700/50 rounded-xl p-2">
-                    <div className="text-orange-400 text-sm font-medium">Duration</div>
-                    <div className="text-white text-sm font-bold">{formatDuration(tripDuration)}</div>
+                    <div className="text-orange-400 text-sm font-medium">
+                      Duration
+                    </div>
+                    <div className="text-white text-sm font-bold">
+                      {formatDuration(tripDuration)}
+                    </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex space-x-3">
                 <button
                   onClick={handleReset}
