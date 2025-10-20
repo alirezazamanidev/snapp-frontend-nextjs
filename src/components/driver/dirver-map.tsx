@@ -11,6 +11,40 @@ import {
 } from 'react-leaflet';
 import { destinationIcon, LocateButton, originIcon } from '../shared/map';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Create a custom driver icon
+const driverIcon = L.divIcon({
+  html: `
+    <div style="
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      border: 3px solid white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+      animation: pulse 2s infinite;
+    ">
+      <div style="
+        font-size: 18px;
+        color: white;
+      ">🚗</div>
+    </div>
+    <style>
+      @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4); }
+        50% { transform: scale(1.1); box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6); }
+        100% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4); }
+      }
+    </style>
+  `,
+  className: 'driver-marker',
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+});
 
 interface DriverMapProps {
   currentLocation?: LatLng | null;
@@ -40,7 +74,7 @@ const MapController = ({
   return (
     <>
     {currentLocation && (
-      <Marker position={[currentLocation.lat, currentLocation.lng]} icon={originIcon} />
+      <Marker position={[currentLocation.lat, currentLocation.lng]} icon={driverIcon} />
     )}
     </>
   )

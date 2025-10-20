@@ -2,6 +2,7 @@
 
 import SearchRideLoading from '@/components/passenger/search-ride-loading';
 import { useSocket } from '@/libs/hooks/useSocket';
+import { User } from '@/libs/models/user';
 
 import { LatLng } from '@/libs/types/coordinate.type';
 import dynamic from 'next/dynamic';
@@ -20,7 +21,7 @@ const PassengerMap = dynamic(
 
 export default function PassengerPage() {
   const [step, setStep] = useState<
-    'select-origin' | 'select-destination' | 'show-route' | 'searching-ride'
+    'select-origin' | 'select-destination' | 'show-route' | 'searching-ride' | 'ride-accepted'
   >('select-origin');
   const [origin, setOrigin] = useState<LatLng | null>({
     lat: 35.6892,
@@ -34,6 +35,7 @@ export default function PassengerPage() {
   const [tripPrice, setTripPrice] = useState<number | null>(null);
   const [tripDistance, setTripDistance] = useState<number | null>(null);
   const [tripDuration, setTripDuration] = useState<number | null>(null);
+  const [acceptedDriver, setAcceptedDriver] = useState<User | null>(null);
   const { socket } = useSocket({ namespace: 'passenger' });
   useEffect(() => {
     const status = localStorage.getItem('status');
@@ -41,6 +43,14 @@ export default function PassengerPage() {
       setStep('searching-ride');
     }
   }, []);
+  useEffect(() => {
+    socket?.on('ride.accepted', ({driver}:{driver:User}) => {
+      console.log('rideAccepted', driver);
+      setAcceptedDriver(driver);
+      setStep('ride-accepted');
+      localStorage.removeItem('status');
+    });
+  }, [socket]);
   const handleConfirmOrigin = () => {
     if (origin) {
       setStep('select-destination');
@@ -98,6 +108,7 @@ export default function PassengerPage() {
     setTripPrice(null);
     setTripDistance(null);
     setTripDuration(null);
+    setAcceptedDriver(null);
   };
 
   const formatDistance = (distance: number | null) => {
@@ -229,6 +240,56 @@ export default function PassengerPage() {
                   Request Ride
                 </button>
               </div>
+            </div>
+          )}
+
+          {step === 'ride-accepted' && acceptedDriver && (
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                <h3 className="text-white text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text">
+                  Ride Accepted!
+                </h3>
+              </div>
+
+              {/* Driver Info Card */}
+              <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-4 mb-3 border border-green-500/30 shadow-inner">
+                <div className="flex items-center space-x-3 mb-3">
+                  {acceptedDriver.avatarUrl ? (
+                    <img
+                      src={acceptedDriver.avatarUrl}
+                      alt={acceptedDriver.fullname}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center border-2 border-green-400">
+                      <span className="text-white font-bold text-lg">
+                        {acceptedDriver.fullname.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-left flex-1">
+                    <p className="text-white font-semibold text-lg">
+                      {acceptedDriver.fullname}
+                    </p>
+                    <p className="text-gray-300 text-sm">
+                      {acceptedDriver.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-green-400 font-medium text-sm">
+                    Your driver is on the way!
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleReset}
+                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white py-3 px-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                Start New Ride
+              </button>
             </div>
           )}
         </div>

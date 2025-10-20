@@ -1,6 +1,8 @@
 'use client';
 
 import { useSocket } from '@/libs/hooks/useSocket';
+import { Ride } from '@/libs/models/ride';
+import { User } from '@/libs/models/user';
 import { LatLng } from '@/libs/types/coordinate.type';
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
@@ -22,19 +24,41 @@ export default function DriverPage() {
   >(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
   const [isWaitingForPassenger, setIsWaitingForPassenger] = useState(false);
+  const [rideRequest, setRideRequest] = useState<{
+    ride: Ride;
+    user: User;
+  } | null>(null);
   const { socket } = useSocket({ namespace: 'driver' });
 
+  // Load ride request from localStorage on component mount
   useEffect(() => {
-    socket?.on('ride.requested',(data)=>{
-        console.log('ride found',data);
-    })
-  }, [socket]);
-  useEffect(() => {
+    const savedRideRequest = localStorage.getItem('current-ride-request');
+    if (savedRideRequest) {
+      const parsedRequest = JSON.parse(savedRideRequest);
+      setRideRequest(parsedRequest);
+      setOrigin(parsedRequest.ride.pickupLocation);
+      setDestination(parsedRequest.ride.destinationLocation);
+    }
     const status = localStorage.getItem('driver-status');
     if (status === 'waiting-for-passenger') {
       setIsWaitingForPassenger(true);
     }
   }, []);
+
+  useEffect(() => {
+    socket?.on('ride.requested', (data: { ride: Ride; user: User }) => {
+      console.log('ride found', data);
+      setRideRequest(data);
+      setOrigin(data.ride.pickupLocation);
+      setDestination(data.ride.destinationLocation);
+      // Save to localStorage
+      localStorage.setItem('current-ride-request', JSON.stringify(data));
+    });
+
+    return () => {
+      socket?.off('ride.requested');
+    };
+  }, [socket]);
 
   const handleStartWaitingForPassenger = () => {
     localStorage.setItem('driver-status', 'waiting-for-passenger');
@@ -49,6 +73,15 @@ export default function DriverPage() {
     localStorage.removeItem('driver-status');
     setIsWaitingForPassenger(false);
     socket?.emit('driver-unavailable');
+  };
+
+  const handleAcceptRide = () => {
+    if (rideRequest) {
+      socket?.emit('ride-accepted', { rideId: rideRequest.ride.id });
+      setRideRequest(null);
+      // Remove from localStorage
+      localStorage.removeItem('current-ride-request');
+    }
   };
 
   return (
@@ -69,7 +102,63 @@ export default function DriverPage() {
       <div className="h-1/4 bg-gradient-to-t from-gray-900 to-gray-800 p-6 flex flex-col justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-yellow-500/5 to-red-500/5 rounded-t-3xl"></div>
         <div className="relative z-10">
-          {!isWaitingForPassenger ? (
+          {rideRequest ? (
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-2"></div>
+                <h3 className="text-white text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-500 bg-clip-text">
+                  New Ride Request
+                </h3>
+              </div>
+
+              {/* Passenger Info Card */}
+              <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-4 mb-3 border border-blue-500/30 shadow-inner">
+                <div className="flex items-center space-x-3 mb-2">
+                  {rideRequest.user.avatarUrl ? (
+                    <img
+                      src={rideRequest.user.avatarUrl}
+                      alt={rideRequest.user.fullname}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">
+                        {rideRequest.user.fullname.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-left flex-1">
+                    <p className="text-white font-semibold">
+                      {rideRequest.user.fullname}
+                    </p>
+                    <p className="text-gray-300 text-sm">
+                      {rideRequest.user.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center mt-3">
+                  <p className="text-green-400 font-bold text-lg">
+                    ${rideRequest.ride.price.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  // onClick={handleRejectRide}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={handleAcceptRide}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Accept Ride
+                </button>
+              </div>
+            </div>
+          ) : !isWaitingForPassenger ? (
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center mb-2">
                 <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse mr-2"></div>

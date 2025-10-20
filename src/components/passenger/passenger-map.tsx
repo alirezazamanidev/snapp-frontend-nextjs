@@ -13,7 +13,7 @@ function MapController({
   setOrigin, 
   setDestination 
 }: { 
-  step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride',
+  step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride' | 'ride-accepted',
   setOrigin: (origin: LatLng) => void,
   setDestination: (destination: LatLng) => void
 }) {
@@ -39,7 +39,7 @@ function MapController({
 }
 
 interface PassengerMapProps {
-  step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride';
+    step: 'select-origin' | 'select-destination' | 'show-route' | 'searching-ride' | 'ride-accepted';
   origin: LatLng | null;
   destination: LatLng | null;
   setOrigin: (origin: LatLng) => void;
