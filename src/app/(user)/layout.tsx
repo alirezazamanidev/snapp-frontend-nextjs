@@ -1,7 +1,7 @@
 import { GetRole } from "@/libs/services/user-service";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { permanentRedirect, redirect } from "next/navigation";
 
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -9,6 +9,6 @@ export default async function UserLayout({ children }: { children: React.ReactNo
     if (!token) redirect('/login');
     const role = await GetRole(token);
     if (!role) redirect('/select-role');
-    if (role !== 'user') redirect('/driver');
+    if (role !== 'user') permanentRedirect('/driver');
     return <>{children}</>;
 }

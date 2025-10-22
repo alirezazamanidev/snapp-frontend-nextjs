@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkLogin } from "./libs/services/auth-service";
 
-const publicRoutes = ['/login', '/select-role'];
+const publicRoutes = ['/login'];
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

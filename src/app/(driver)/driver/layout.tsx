@@ -8,6 +8,7 @@ export default async function DriverLayout({ children }: { children: React.React
   const token = cookieStore.get('snapp-session')?.value;
   if (!token) redirect('/login');
   const hasProfile = await CheckDriverProfile(token);
+  console.log(hasProfile);
   if (!hasProfile) redirect('/driver-profile');
   return <>{children}</>;
 }

@@ -27,8 +27,7 @@ export const CallApi = () => {
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (err: AxiosError) => {
-     
-
+      console.log(err);
 
       if (err.response) {
         const { status, data } = err.response;

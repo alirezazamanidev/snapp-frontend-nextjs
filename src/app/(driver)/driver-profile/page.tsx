@@ -1,6 +1,8 @@
 'use client';
 
+import { CallApi } from '@/libs/helpers/callApi';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useRouter } from 'next/navigation';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -16,9 +18,19 @@ const validationSchema = Yup.object({
 });
 
 export default function DriverProfilePage() {
-  const handleSubmit = (values: any) => {
-    console.log('Form values:', values);
+  const router = useRouter();
+  const handleSubmit = async (values: any) => {
+  
     // Here you can send data to server
+    try {
+      const response =await CallApi().post('/user/driver/profile', values);
+      if(response.status === 200) {
+        router.push('/driver');
+      }
+    } catch (error) {
+    
+      console.error('Error:', error);
+    }
   };
 
   return (
