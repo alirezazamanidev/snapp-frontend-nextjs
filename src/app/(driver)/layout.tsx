@@ -11,7 +11,6 @@ export default async function DriverLayout({
   const token = cookieStore.get('snapp-session')?.value;
   if (!token) redirect('/login');
   const role = await GetRole(token);
-  
   if (!role) redirect('/select-role');
   if (role !== 'driver') permanentRedirect('/');
   return <>{children}</>;
